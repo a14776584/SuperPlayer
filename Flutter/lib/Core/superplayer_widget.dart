@@ -1,6 +1,8 @@
+// @dart = 2.7
 part of SuperPlayer;
 
-typedef void SuperPlatformViewCreatedCallback(SuperPlayerPlatformViewController controller);
+typedef void SuperPlatformViewCreatedCallback(
+    SuperPlayerPlatformViewController controller);
 
 class SuperPlayerVideo extends StatefulWidget {
   // "playShiftDomain": "liteavapp.timeshift.qcloud.com",
@@ -35,7 +37,8 @@ class _SuperPlayerVideoState extends State<SuperPlayerVideo> {
     if (widget.onCreated == null) {
       return;
     }
-    SuperPlayerPlatformViewController vc = new SuperPlayerPlatformViewController.init(id);
+    SuperPlayerPlatformViewController vc =
+        new SuperPlayerPlatformViewController.init(id);
     widget.onCreated(vc);
   }
 

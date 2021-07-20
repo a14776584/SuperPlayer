@@ -1,6 +1,8 @@
+// @dart = 2.7
 part of SuperPlayer;
 
-class TXLivePlayerController extends ChangeNotifier implements ValueListenable<TXPlayerValue>, TXPlayerController {
+class TXLivePlayerController extends ChangeNotifier
+    implements ValueListenable<TXPlayerValue>, TXPlayerController {
   int _playerId = -1;
 
   final Completer<int> _initPlayer;
@@ -16,17 +18,19 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   StreamSubscription _netSubscription;
 
   final StreamController<TXPlayerState> _stateStreamController =
-  StreamController.broadcast();
+      StreamController.broadcast();
 
-  final StreamController<Map<dynamic, dynamic> > _eventStreamController =
-  StreamController.broadcast();
+  final StreamController<Map<dynamic, dynamic>> _eventStreamController =
+      StreamController.broadcast();
 
-  final StreamController<Map<dynamic, dynamic> > _netStatusStreamController =
-  StreamController.broadcast();
+  final StreamController<Map<dynamic, dynamic>> _netStatusStreamController =
+      StreamController.broadcast();
 
   Stream<TXPlayerState> get onPlayerState => _stateStreamController.stream;
-  Stream<Map<dynamic, dynamic> > get onPlayerEventBroadcast => _eventStreamController.stream;
-  Stream<Map<dynamic, dynamic> > get onPlayerNetStatusBroadcast => _netStatusStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast =>
+      _eventStreamController.stream;
+  Stream<Map<dynamic, dynamic>> get onPlayerNetStatusBroadcast =>
+      _netStatusStreamController.stream;
 
   TXLivePlayerController()
       : _initPlayer = Completer(),
@@ -55,21 +59,23 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   /// see:https://cloud.tencent.com/document/product/454/7886#.E6.92.AD.E6.94.BE.E4.BA.8B.E4.BB.B6
   ///
   _eventHandler(event) {
-    if(event == null) return;
+    if (event == null) return;
     final Map<dynamic, dynamic> map = event;
     //debugPrint("= event = ${map.toString()}");
-    switch(map["event"]){
+    switch (map["event"]) {
       case 2002:
         break;
       case 2003:
-        if(_isNeedDisposed) return;
-        if(_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
+        if (_isNeedDisposed) return;
+        if (_state == TXPlayerState.buffering)
+          _changeState(TXPlayerState.playing);
         break;
       case 2004:
-        if(_isNeedDisposed) return;
-        if(_state == TXPlayerState.buffering) _changeState(TXPlayerState.playing);
+        if (_isNeedDisposed) return;
+        if (_state == TXPlayerState.buffering)
+          _changeState(TXPlayerState.playing);
         break;
-      case 2005://EVT_PLAY_PROGRESS
+      case 2005: //EVT_PLAY_PROGRESS
         break;
       case 2006:
         _changeState(TXPlayerState.stopped);
@@ -77,20 +83,20 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
       case 2007:
         _changeState(TXPlayerState.buffering);
         break;
-      case 2015://直播，切流成功（切流可以播放不同画面大小的视频）
+      case 2015: //直播，切流成功（切流可以播放不同画面大小的视频）
         break;
-      case -2301://disconnect
+      case -2301: //disconnect
         _changeState(TXPlayerState.failed);
         break;
-      case 2103://reconnect
+      case 2103: //reconnect
         break;
-      case 3001://dnsFail
+      case 3001: //dnsFail
         break;
-      case 3002://severConnFail
+      case 3002: //severConnFail
         break;
-      case 3003://shakeFail
+      case 3003: //shakeFail
         break;
-      case -2307://failed
+      case -2307: //failed
         _changeState(TXPlayerState.failed);
         break;
       default:
@@ -104,12 +110,12 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   }
 
   _netHandler(event) {
-    if(event == null) return;
+    if (event == null) return;
     final Map<dynamic, dynamic> map = event;
     _netStatusStreamController.add(map);
   }
 
-  _changeState(TXPlayerState playerState){
+  _changeState(TXPlayerState playerState) {
     value = _value.copyWith(state: playerState);
     _state = value.state;
     _stateStreamController.add(_state);
@@ -125,12 +131,12 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _changeState(TXPlayerState.buffering);
 
     final result =
-    await _channel.invokeMethod("play", {"url": url, "playType": playType});
+        await _channel.invokeMethod("play", {"url": url, "playType": playType});
     return result == 0;
   }
 
-  Future<void> initialize({bool onlyAudio}) async{
-    if(_isNeedDisposed) return false;
+  Future<void> initialize({bool onlyAudio}) async {
+    if (_isNeedDisposed) return false;
     await _initPlayer.future;
     final textureId = await _channel.invokeMethod("init", {
       "onlyAudio": onlyAudio ?? false,
@@ -139,17 +145,17 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
     _state = TXPlayerState.paused;
   }
 
-  Future<void> setIsAutoPlay({bool isAutoPlay}) async{
-    if(_isNeedDisposed) return false;
+  Future<void> setIsAutoPlay({bool isAutoPlay}) async {
+    if (_isNeedDisposed) return false;
     await _initPlayer.future;
     await _channel.invokeMethod("setIsAutoPlay", {"isAutoPlay" ?? false});
   }
 
   Future<bool> stop({bool isNeedClear = true}) async {
-    if(_isNeedDisposed) return false;
+    if (_isNeedDisposed) return false;
     await _initPlayer.future;
     final result =
-    await _channel.invokeMethod("stop", {"isNeedClear": isNeedClear});
+        await _channel.invokeMethod("stop", {"isNeedClear": isNeedClear});
     _changeState(TXPlayerState.stopped);
     return result == 0;
   }
@@ -160,27 +166,27 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   }
 
   Future<void> pause() async {
-    if(_isNeedDisposed) return;
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("pause");
-    if(_state != TXPlayerState.paused) _changeState(TXPlayerState.paused);
+    if (_state != TXPlayerState.paused) _changeState(TXPlayerState.paused);
   }
 
   Future<void> resume() async {
-    if(_isNeedDisposed) return;
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("resume");
-    if(_state != TXPlayerState.playing) _changeState(TXPlayerState.playing);
+    if (_state != TXPlayerState.playing) _changeState(TXPlayerState.playing);
   }
 
   Future<void> setLiveMode(TXPlayerLiveMode mode) async {
-    if(_isNeedDisposed) return;
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setLiveMode", {"type": mode.index});
   }
 
   Future<void> setVolume(int volume) async {
-    if(_isNeedDisposed) return;
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("setVolume", {"volume": volume});
   }
@@ -204,21 +210,22 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   }
 
   Future<void> seek(double progress) async {
-    if(_isNeedDisposed) return;
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("seek", {"progress": progress});
   }
 
   Future<void> setAppID(int appId) async {
-    if(_isNeedDisposed) return;
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
     await _channel.invokeMethod("seek", {"appId": appId});
   }
 
   Future<void> prepareLiveSeek(String domain, int bizId) async {
-    if(_isNeedDisposed) return;
+    if (_isNeedDisposed) return;
     await _initPlayer.future;
-    await _channel.invokeMethod("prepareLiveSeek", {"domain":domain, "bizId":bizId});
+    await _channel
+        .invokeMethod("prepareLiveSeek", {"domain": domain, "bizId": bizId});
   }
 
   Future<void> _release() async {
@@ -228,9 +235,9 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
   }
 
   @override
-  void dispose() async{
+  void dispose() async {
     _isNeedDisposed = true;
-    if(!_isDisposed){
+    if (!_isDisposed) {
       await _eventSubscription.cancel();
       _eventSubscription = null;
 
@@ -249,7 +256,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
 
   get value => _value;
 
-  set value(TXPlayerValue val){
+  set value(TXPlayerValue val) {
     if (_value == val) return;
     _value = val;
     notifyListeners();
@@ -257,8 +264,7 @@ class TXLivePlayerController extends ChangeNotifier implements ValueListenable<T
 
   @override
   // TODO: implement textureId
-  Future<int> get textureId  async {
+  Future<int> get textureId async {
     return _createTexture.future;
   }
-
 }
